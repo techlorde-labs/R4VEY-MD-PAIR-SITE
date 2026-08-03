@@ -1,4 +1,4 @@
-// server.js – Pairing Website with Animations & Music
+// server.js – R4VEY-MD Pairing Website with YouTube Music
 const express = require('express');
 const { default: makeWASocket, useMultiFileAuthState } = require('@whiskeysockets/baileys');
 const pino = require('pino');
@@ -13,7 +13,7 @@ let isGenerating = false;
 
 app.use(express.json());
 
-// ─── HTML PAGE with animations & music ───
+// ─── HTML PAGE ───
 app.get('/', (req, res) => {
     res.send(`
 <!DOCTYPE html>
@@ -23,11 +23,10 @@ app.get('/', (req, res) => {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        /* ── General reset & fonts ── */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #0d0d2b, #1a1a3e);
+            background: radial-gradient(ellipse at center, #0a0a1a, #05050f);
             color: #fff;
             min-height: 100vh;
             display: flex;
@@ -35,214 +34,189 @@ app.get('/', (req, res) => {
             align-items: center;
             padding: 20px;
             position: relative;
-            overflow: hidden;
+            overflow-x: hidden;
         }
-
-        /* ── Animated starfield background ── */
-        #stars {
+        #particles {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
             z-index: 0;
             pointer-events: none;
         }
-
-        /* ── Main container ── */
         .container {
             position: relative;
             z-index: 1;
-            background: rgba(255,255,255,0.05);
-            backdrop-filter: blur(12px);
-            border-radius: 30px;
-            padding: 40px 50px;
-            max-width: 520px;
+            background: rgba(10,10,30,0.7);
+            backdrop-filter: blur(20px);
+            border-radius: 40px;
+            padding: 45px 50px;
+            max-width: 550px;
             width: 100%;
             text-align: center;
-            border: 1px solid rgba(255,255,255,0.08);
-            box-shadow: 0 20px 60px rgba(0,0,0,0.6);
-            animation: fadeInUp 1s ease-out;
+            border: 1px solid rgba(255,215,0,0.2);
+            box-shadow: 0 0 60px rgba(255,215,0,0.05), inset 0 0 60px rgba(255,215,0,0.02);
+            animation: fadeInUp 1.2s ease-out;
         }
-
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(40px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
+        @keyframes fadeInUp { from { opacity:0; transform:translateY(60px); } to { opacity:1; transform:translateY(0); } }
         h1 {
-            font-size: 2.2rem;
-            margin-bottom: 4px;
-            background: linear-gradient(90deg, #4a6cf7, #a855f7);
+            font-size: 2.6rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #f7b733, #fc4a1a, #f7b733);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            animation: glowPulse 3s infinite alternate;
+            background-size: 300% 300%;
+            animation: shimmer 4s ease-in-out infinite, glowPulse 3s infinite alternate;
+            margin-bottom: 6px;
+            letter-spacing: 2px;
         }
-        @keyframes glowPulse {
-            0% { text-shadow: 0 0 10px rgba(74,108,247,0.3); }
-            100% { text-shadow: 0 0 30px rgba(168,85,247,0.6); }
-        }
+        @keyframes shimmer { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+        @keyframes glowPulse { 0% { filter: drop-shadow(0 0 10px rgba(247,183,51,0.3)); } 100% { filter: drop-shadow(0 0 30px rgba(252,74,26,0.6)); } }
+        .subtitle { font-size: 1rem; color: #ddd; margin: 5px 0 20px; font-weight: 300; letter-spacing: 4px; text-transform: uppercase; opacity: 0.8; }
 
-        .subtitle {
-            color: #aaa;
-            margin-bottom: 25px;
-            font-size: 0.95rem;
-            animation: fadeIn 1.5s ease-in;
+        .welcome {
+            background: linear-gradient(135deg, rgba(255,215,0,0.05), rgba(255,100,50,0.05));
+            border-radius: 16px;
+            padding: 20px 18px;
+            margin: 10px 0 25px;
+            border-left: 4px solid #f7b733;
+            font-size: 1rem;
+            line-height: 1.8;
+            color: #eee;
+            animation: fadeIn 2s ease-in;
         }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .welcome strong { color: #f7b733; font-weight: 700; }
+        .welcome .heart { color: #ff4d4d; display: inline-block; animation: heartbeat 1.2s infinite; }
+        @keyframes heartbeat { 0%,100%{ transform:scale(1); } 50%{ transform:scale(1.3); } }
+        .welcome .sparkle { display: inline-block; animation: sparkle 2s infinite alternate; }
+        @keyframes sparkle { 0% { opacity:0.3; transform:scale(0.8) rotate(0deg); } 100% { opacity:1; transform:scale(1.2) rotate(15deg); } }
+        @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
 
-        .input-group {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin-bottom: 20px;
-            text-align: left;
-        }
+        .input-group { display: flex; flex-direction: column; gap: 10px; margin-bottom: 18px; text-align: left; }
         .input-group label { font-weight: 600; font-size: 0.9rem; color: #ccc; }
         .input-group input {
-            padding: 14px 18px;
-            border-radius: 12px;
-            border: 1px solid #333;
-            background: #0a0a1a;
-            color: #fff;
-            font-size: 1rem;
-            outline: none;
+            padding: 14px 18px; border-radius: 14px; border: 1px solid #333;
+            background: rgba(0,0,0,0.4); color: #fff; font-size: 1rem; outline: none;
             transition: border 0.3s, box-shadow 0.3s;
         }
-        .input-group input:focus {
-            border-color: #4a6cf7;
-            box-shadow: 0 0 20px rgba(74,108,247,0.2);
-        }
+        .input-group input:focus { border-color: #f7b733; box-shadow: 0 0 30px rgba(247,183,51,0.15); }
 
         .btn {
             padding: 16px;
-            background: #4a6cf7;
+            background: linear-gradient(135deg, #f7b733, #fc4a1a);
             color: #fff;
             font-size: 1.1rem;
-            font-weight: 600;
+            font-weight: 700;
             border: none;
             border-radius: 50px;
             cursor: pointer;
-            transition: background 0.3s, transform 0.2s, box-shadow 0.3s;
+            transition: transform 0.3s, box-shadow 0.3s;
             width: 100%;
-            animation: pulseBtn 2s infinite;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            animation: pulseBtn 2.5s infinite;
         }
-        @keyframes pulseBtn {
-            0% { box-shadow: 0 0 0 0 rgba(74,108,247,0.4); }
-            70% { box-shadow: 0 0 0 15px rgba(74,108,247,0); }
-            100% { box-shadow: 0 0 0 0 rgba(74,108,247,0); }
-        }
-        .btn:hover {
-            background: #3a5cd7;
-            transform: scale(1.02);
-            animation: none;
-        }
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-            animation: none;
-        }
+        @keyframes pulseBtn { 0% { box-shadow: 0 0 0 0 rgba(247,183,51,0.5); } 70% { box-shadow: 0 0 0 15px rgba(247,183,51,0); } 100% { box-shadow: 0 0 0 0 rgba(247,183,51,0); } }
+        .btn:hover { transform: scale(1.03); box-shadow: 0 0 40px rgba(247,183,51,0.3); animation: none; }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; animation: none; }
 
-        .code-box {
-            background: #0a0a1a;
-            border-radius: 16px;
-            padding: 20px;
-            margin: 20px 0;
-            border: 2px dashed #4a6cf7;
-            animation: float 4s ease-in-out infinite;
-        }
-        @keyframes float {
-            0% { transform: translateY(0); }
-            50% { transform: translateY(-8px); }
-            100% { transform: translateY(0); }
-        }
-        .code {
-            font-size: 2.8rem;
-            font-weight: bold;
-            letter-spacing: 6px;
-            color: #4a6cf7;
-            font-family: 'Courier New', monospace;
-        }
+        .code-box { background: rgba(0,0,0,0.5); border-radius: 16px; padding: 22px; margin: 20px 0; border: 2px dashed #f7b733; animation: float 5s ease-in-out infinite; }
+        @keyframes float { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-10px); } }
+        .code { font-size: 3rem; font-weight: bold; letter-spacing: 8px; color: #f7b733; font-family: 'Courier New', monospace; text-shadow: 0 0 20px rgba(247,183,51,0.3); }
 
-        .status {
-            margin-top: 15px;
-            padding: 12px;
-            border-radius: 10px;
-            font-weight: 500;
-            display: none;
-        }
+        .status { margin-top: 15px; padding: 12px; border-radius: 10px; font-weight: 500; display: none; }
         .status.show { display: block; }
         .status.success { background: #1e7e34; color: #b7ffc7; }
         .status.waiting { background: #7a6a1e; color: #ffefb7; }
         .status.error { background: #7e1e1e; color: #ffb7b7; }
 
-        .loader {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #4a6cf7;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 20px auto;
-            display: none;
-        }
+        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #f7b733; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto; display: none; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        .footer {
-            margin-top: 20px;
-            font-size: 0.8rem;
-            color: #555;
-        }
+        .footer { margin-top: 20px; font-size: 0.75rem; color: #555; }
         .hidden { display: none; }
 
-        /* ── Music control ── */
-        .music-control {
+        /* ── Music Player ── */
+        .music-container {
             position: fixed;
-            bottom: 20px;
-            right: 20px;
+            bottom: 30px;
+            left: 30px;
             z-index: 10;
-            background: rgba(0,0,0,0.6);
-            border-radius: 30px;
-            padding: 8px 16px;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 50px;
+            padding: 12px 20px;
             display: flex;
             align-items: center;
-            gap: 10px;
-            border: 1px solid #333;
-            backdrop-filter: blur(4px);
+            gap: 16px;
+            border: 1px solid rgba(255,215,0,0.2);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.5);
         }
-        .music-control button {
+        .music-container button {
             background: none;
             border: none;
             color: #fff;
             font-size: 1.2rem;
             cursor: pointer;
-            padding: 4px 8px;
+            padding: 4px 6px;
+            transition: color 0.2s;
         }
-        .music-control button:hover { color: #4a6cf7; }
-        .music-control span { font-size: 0.75rem; color: #888; }
+        .music-container button:hover { color: #f7b733; }
+        .music-container .track-info {
+            font-size: 0.75rem;
+            color: #aaa;
+            max-width: 150px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .music-container .track-info .current { color: #f7b733; }
+        #ytPlayer { display: none; }
+        @media (max-width: 600px) {
+            .container { padding: 30px 20px; }
+            h1 { font-size: 2rem; }
+            .code { font-size: 2.2rem; letter-spacing: 4px; }
+            .music-container { bottom: 15px; left: 15px; padding: 8px 14px; gap: 8px; }
+            .music-container .track-info { max-width: 80px; }
+        }
     </style>
 </head>
 <body>
-    <!-- Starfield canvas -->
-    <canvas id="stars"></canvas>
 
-    <!-- Background Audio -->
-    <audio id="bgMusic" loop autoplay>
-        <source src="https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=lo-fi-chill-113102.mp3" type="audio/mpeg">
-        Your browser does not support the audio element.
-    </audio>
+    <!-- Particle background -->
+    <canvas id="particles"></canvas>
 
-    <!-- Music Control -->
-    <div class="music-control">
-        <span>🎵</span>
-        <button id="musicToggle" onclick="toggleMusic()">⏸</button>
+    <!-- YouTube Player (hidden) -->
+    <div id="ytPlayer"></div>
+
+    <!-- Music Control Bar -->
+    <div class="music-container">
+        <button id="prevBtn" onclick="prevTrack()" title="Previous">⏮</button>
+        <button id="playBtn" onclick="togglePlay()" title="Play/Pause">⏸</button>
+        <button id="nextBtn" onclick="nextTrack()" title="Next">⏭</button>
+        <div class="track-info">
+            <span class="current" id="currentTrack">Loading...</span>
+        </div>
+        <button id="unmuteBtn" onclick="unmute()" title="Unmute" style="font-size:0.9rem;">🔊</button>
     </div>
 
     <!-- Main container -->
     <div class="container">
-        <h1>🔑 R4VEY-MD</h1>
-        <p class="subtitle">WhatsApp Pairing Generator</p>
+        <h1>✦ R4VEY-MD ✦</h1>
+        <div class="subtitle">✨ Pairing Portal ✨</div>
+
+        <!-- Welcome Message -->
+        <div class="welcome">
+            <span class="sparkle">🌟</span> Welcome to the <strong>R4VEY-MD Pairing Portal</strong>
+            <span class="sparkle">🌟</span><br>
+            Made with <span class="heart">❤️</span> by
+            <strong>🅡̣̣̣🅰️♈ 🅔̣̣̣🅨̣̣̣</strong><br>
+            <span style="font-size:0.9rem; color:#ccc;">
+                ✦ Your ultimate WhatsApp pairing experience ✦
+            </span>
+            <div style="margin-top:6px; font-size:0.8rem; color:#888;">
+                <span>✨ Glowing vibes • Royal essence • Boundless connection ✨</span>
+            </div>
+        </div>
 
         <div id="step1">
             <div class="input-group">
@@ -265,54 +239,136 @@ app.get('/', (req, res) => {
             <button class="btn" style="margin-top: 12px; background:#333; animation: none;" onclick="reset()">⟳ New Code</button>
         </div>
 
-        <div class="footer">R4VEY-MD v1.0</div>
+        <div class="footer">R4VEY-MD v1.0 • Made with ❤️</div>
     </div>
 
+    <!-- ─── YouTube Iframe API ─── -->
     <script>
-        // ── Starfield ──
-        const canvas = document.getElementById('stars');
+        // ── Particle System ──
+        const canvas = document.getElementById('particles');
         const ctx = canvas.getContext('2d');
         let w, h;
         function resize() { w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; }
         window.addEventListener('resize', resize);
         resize();
 
-        const stars = [];
-        for (let i = 0; i < 150; i++) {
-            stars.push({
+        const particles = [];
+        for (let i = 0; i < 200; i++) {
+            particles.push({
                 x: Math.random() * w,
                 y: Math.random() * h,
-                r: Math.random() * 1.5 + 0.5,
-                speed: Math.random() * 0.02 + 0.01
+                r: Math.random() * 2 + 0.5,
+                speedX: (Math.random() - 0.5) * 0.3,
+                speedY: (Math.random() - 0.5) * 0.3,
+                color: `rgba(255,215,0,${Math.random() * 0.6 + 0.2})`
             });
         }
-        function drawStars() {
-            ctx.clearRect(0, 0, w, h);
-            for (const s of stars) {
-                ctx.beginPath();
-                ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-                ctx.fillStyle = 'rgba(255,255,255,0.6)';
-                ctx.fill();
-                s.y += s.speed;
-                if (s.y > h) { s.y = 0; s.x = Math.random() * w; }
-            }
-            requestAnimationFrame(drawStars);
-        }
-        drawStars();
 
-        // ── Music toggle ──
-        const audio = document.getElementById('bgMusic');
-        let musicPlaying = true;
-        function toggleMusic() {
-            if (musicPlaying) {
-                audio.pause();
-                document.getElementById('musicToggle').textContent = '▶';
-            } else {
-                audio.play().catch(() => {});
-                document.getElementById('musicToggle').textContent = '⏸';
+        function drawParticles() {
+            ctx.clearRect(0, 0, w, h);
+            for (const p of particles) {
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+                ctx.fillStyle = p.color;
+                ctx.fill();
+                p.x += p.speedX;
+                p.y += p.speedY;
+                if (p.x < 0 || p.x > w) p.speedX *= -1;
+                if (p.y < 0 || p.y > h) p.speedY *= -1;
             }
-            musicPlaying = !musicPlaying;
+            requestAnimationFrame(drawParticles);
         }
+        drawParticles();
+
+        // ── YouTube Player ──
+        let player;
+        let currentTrackIndex = 0;
+        let isPlaying = false;
+
+        // ── YOUR SONGS ──
+        const videoIds = [
+            'ekjEJBHoU-0', // White Keys – Dominic Fike
+            'WgTMeICssXY'  // Dandelions – Ruth B.
+        ];
+        const trackTitles = [
+            'White Keys – Dominic Fike',
+            'Dandelions – Ruth B.'
+        ];
+
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('ytPlayer', {
+                height: '0',
+                width: '0',
+                videoId: videoIds[0],
+                playerVars: {
+                    autoplay: 1,
+                    mute: 1,
+                    controls: 0,
+                    loop: 1,
+                    playlist: videoIds.join(',')
+                },
+                events: {
+                    onReady: onPlayerReady,
+                    onStateChange: onPlayerStateChange
+                }
+            });
+        }
+
+        function onPlayerReady(event) {
+            document.getElementById('currentTrack').textContent = trackTitles[0];
+            event.target.playVideo();
+            isPlaying = true;
+        }
+
+        function onPlayerStateChange(event) {
+            if (event.data === YT.PlayerState.ENDED) {
+                nextTrack();
+            }
+            if (event.data === YT.PlayerState.PLAYING) {
+                isPlaying = true;
+                document.getElementById('playBtn').textContent = '⏸';
+            } else if (event.data === YT.PlayerState.PAUSED) {
+                isPlaying = false;
+                document.getElementById('playBtn').textContent = '▶';
+            }
+        }
+
+        function togglePlay() {
+            if (isPlaying) {
+                player.pauseVideo();
+            } else {
+                player.playVideo();
+            }
+        }
+
+        function nextTrack() {
+            currentTrackIndex = (currentTrackIndex + 1) % videoIds.length;
+            player.loadVideoById(videoIds[currentTrackIndex]);
+            document.getElementById('currentTrack').textContent = trackTitles[currentTrackIndex];
+            if (!isPlaying) {
+                player.playVideo();
+            }
+        }
+
+        function prevTrack() {
+            currentTrackIndex = (currentTrackIndex - 1 + videoIds.length) % videoIds.length;
+            player.loadVideoById(videoIds[currentTrackIndex]);
+            document.getElementById('currentTrack').textContent = trackTitles[currentTrackIndex];
+            if (!isPlaying) {
+                player.playVideo();
+            }
+        }
+
+        function unmute() {
+            player.unMute();
+            document.getElementById('unmuteBtn').textContent = '🔊';
+        }
+
+        // ── Load YouTube API ──
+        const tag = document.createElement('script');
+        tag.src = 'https://www.youtube.com/iframe_api';
+        const firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
         // ── Pairing logic ──
         async function generatePair() {
@@ -380,7 +436,7 @@ app.get('/', (req, res) => {
     `);
 });
 
-// ─── PAIR API (unchanged, but kept for completeness) ───
+// ─── PAIR API ───
 app.post('/pair', async (req, res) => {
     if (isGenerating) {
         return res.json({ success: false, error: 'Already generating' });
