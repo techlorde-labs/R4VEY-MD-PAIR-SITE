@@ -13,10 +13,8 @@ let isGenerating = false;
 
 app.use(express.json());
 
-// ─── HTML PAGE ───
 app.get('/', (req, res) => {
-    res.send(`
-<!DOCTYPE html>
+    res.send(`<!DOCTYPE html>
 <html>
 <head>
     <title>R4VEY-MD Pairing</title>
@@ -135,7 +133,6 @@ app.get('/', (req, res) => {
         .footer { margin-top: 20px; font-size: 0.75rem; color: #555; }
         .hidden { display: none; }
 
-        /* ── Music Player ── */
         .music-container {
             position: fixed;
             bottom: 30px;
@@ -181,30 +178,20 @@ app.get('/', (req, res) => {
     </style>
 </head>
 <body>
-
-    <!-- Particle background -->
     <canvas id="particles"></canvas>
-
-    <!-- YouTube Player (hidden) -->
     <div id="ytPlayer"></div>
-
-    <!-- Music Control Bar -->
     <div class="music-container">
-        <button id="prevBtn" onclick="prevTrack()" title="Previous">⏮</button>
-        <button id="playBtn" onclick="togglePlay()" title="Play/Pause">⏸</button>
-        <button id="nextBtn" onclick="nextTrack()" title="Next">⏭</button>
+        <button id="prevBtn" onclick="prevTrack()">⏮</button>
+        <button id="playBtn" onclick="togglePlay()">⏸</button>
+        <button id="nextBtn" onclick="nextTrack()">⏭</button>
         <div class="track-info">
             <span class="current" id="currentTrack">Loading...</span>
         </div>
-        <button id="unmuteBtn" onclick="unmute()" title="Unmute" style="font-size:0.9rem;">🔊</button>
+        <button id="unmuteBtn" onclick="unmute()" style="font-size:0.9rem;">🔊</button>
     </div>
-
-    <!-- Main container -->
     <div class="container">
         <h1>✦ R4VEY-MD ✦</h1>
         <div class="subtitle">✨ Pairing Portal ✨</div>
-
-        <!-- Welcome Message -->
         <div class="welcome">
             <span class="sparkle">🌟</span> Welcome to the <strong>R4VEY-MD Pairing Portal</strong>
             <span class="sparkle">🌟</span><br>
@@ -217,7 +204,6 @@ app.get('/', (req, res) => {
                 <span>✨ Glowing vibes • Royal essence • Boundless connection ✨</span>
             </div>
         </div>
-
         <div id="step1">
             <div class="input-group">
                 <label>📱 Your WhatsApp Number</label>
@@ -225,9 +211,7 @@ app.get('/', (req, res) => {
             </div>
             <button class="btn" id="generateBtn" onclick="generatePair()">🚀 Generate Pairing Code</button>
         </div>
-
         <div id="loader" class="loader"></div>
-
         <div id="result" class="hidden">
             <div class="code-box">
                 <div class="code" id="pairingCode">──────</div>
@@ -238,20 +222,15 @@ app.get('/', (req, res) => {
             <div class="status waiting show" id="statusMsg">⏳ Waiting for connection...</div>
             <button class="btn" style="margin-top: 12px; background:#333; animation: none;" onclick="reset()">⟳ New Code</button>
         </div>
-
         <div class="footer">R4VEY-MD v1.0 • Made with ❤️</div>
     </div>
-
-    <!-- ─── YouTube Iframe API ─── -->
     <script>
-        // ── Particle System ──
         const canvas = document.getElementById('particles');
         const ctx = canvas.getContext('2d');
         let w, h;
         function resize() { w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; }
         window.addEventListener('resize', resize);
         resize();
-
         const particles = [];
         for (let i = 0; i < 200; i++) {
             particles.push({
@@ -260,10 +239,9 @@ app.get('/', (req, res) => {
                 r: Math.random() * 2 + 0.5,
                 speedX: (Math.random() - 0.5) * 0.3,
                 speedY: (Math.random() - 0.5) * 0.3,
-                color: `rgba(255,215,0,${Math.random() * 0.6 + 0.2})`
+                color: 'rgba(255,215,0,' + (Math.random() * 0.6 + 0.2) + ')'
             });
         }
-
         function drawParticles() {
             ctx.clearRect(0, 0, w, h);
             for (const p of particles) {
@@ -280,109 +258,70 @@ app.get('/', (req, res) => {
         }
         drawParticles();
 
-        // ── YouTube Player ──
         let player;
         let currentTrackIndex = 0;
         let isPlaying = false;
-
-        // ── YOUR SONGS ──
-        const videoIds = [
-            'ekjEJBHoU-0', // White Keys – Dominic Fike
-            'WgTMeICssXY'  // Dandelions – Ruth B.
-        ];
-        const trackTitles = [
-            'White Keys – Dominic Fike',
-            'Dandelions – Ruth B.'
-        ];
+        const videoIds = ['ekjEJBHoU-0', 'WgTMeICssXY'];
+        const trackTitles = ['White Keys – Dominic Fike', 'Dandelions – Ruth B.'];
 
         function onYouTubeIframeAPIReady() {
             player = new YT.Player('ytPlayer', {
                 height: '0',
                 width: '0',
                 videoId: videoIds[0],
-                playerVars: {
-                    autoplay: 1,
-                    mute: 1,
-                    controls: 0,
-                    loop: 1,
-                    playlist: videoIds.join(',')
-                },
+                playerVars: { autoplay: 1, mute: 1, controls: 0, loop: 1, playlist: videoIds.join(',') },
                 events: {
-                    onReady: onPlayerReady,
-                    onStateChange: onPlayerStateChange
+                    onReady: function(event) {
+                        document.getElementById('currentTrack').textContent = trackTitles[0];
+                        event.target.playVideo();
+                        isPlaying = true;
+                    },
+                    onStateChange: function(event) {
+                        if (event.data === YT.PlayerState.ENDED) nextTrack();
+                        if (event.data === YT.PlayerState.PLAYING) {
+                            isPlaying = true;
+                            document.getElementById('playBtn').textContent = '⏸';
+                        } else if (event.data === YT.PlayerState.PAUSED) {
+                            isPlaying = false;
+                            document.getElementById('playBtn').textContent = '▶';
+                        }
+                    }
                 }
             });
         }
 
-        function onPlayerReady(event) {
-            document.getElementById('currentTrack').textContent = trackTitles[0];
-            event.target.playVideo();
-            isPlaying = true;
-        }
-
-        function onPlayerStateChange(event) {
-            if (event.data === YT.PlayerState.ENDED) {
-                nextTrack();
-            }
-            if (event.data === YT.PlayerState.PLAYING) {
-                isPlaying = true;
-                document.getElementById('playBtn').textContent = '⏸';
-            } else if (event.data === YT.PlayerState.PAUSED) {
-                isPlaying = false;
-                document.getElementById('playBtn').textContent = '▶';
-            }
-        }
-
         function togglePlay() {
-            if (isPlaying) {
-                player.pauseVideo();
-            } else {
-                player.playVideo();
-            }
+            if (isPlaying) player.pauseVideo();
+            else player.playVideo();
         }
-
         function nextTrack() {
             currentTrackIndex = (currentTrackIndex + 1) % videoIds.length;
             player.loadVideoById(videoIds[currentTrackIndex]);
             document.getElementById('currentTrack').textContent = trackTitles[currentTrackIndex];
-            if (!isPlaying) {
-                player.playVideo();
-            }
+            if (!isPlaying) player.playVideo();
         }
-
         function prevTrack() {
             currentTrackIndex = (currentTrackIndex - 1 + videoIds.length) % videoIds.length;
             player.loadVideoById(videoIds[currentTrackIndex]);
             document.getElementById('currentTrack').textContent = trackTitles[currentTrackIndex];
-            if (!isPlaying) {
-                player.playVideo();
-            }
+            if (!isPlaying) player.playVideo();
         }
+        function unmute() { player.unMute(); document.getElementById('unmuteBtn').textContent = '🔊'; }
 
-        function unmute() {
-            player.unMute();
-            document.getElementById('unmuteBtn').textContent = '🔊';
-        }
-
-        // ── Load YouTube API ──
         const tag = document.createElement('script');
         tag.src = 'https://www.youtube.com/iframe_api';
-        const firstScriptTag = document.getElementsByTagName('script')[0];
-        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+        document.getElementsByTagName('script')[0].parentNode.insertBefore(tag, document.getElementsByTagName('script')[0]);
 
-        // ── Pairing logic ──
         async function generatePair() {
             const phone = document.getElementById('phoneInput').value.trim();
             if (!phone || phone.length < 10) {
                 alert('Please enter a valid phone number (without +).');
                 return;
             }
-
             const btn = document.getElementById('generateBtn');
             const loader = document.getElementById('loader');
             btn.disabled = true;
             loader.style.display = 'block';
-
             try {
                 const resp = await fetch('/pair', {
                     method: 'POST',
@@ -390,7 +329,6 @@ app.get('/', (req, res) => {
                     body: JSON.stringify({ phone })
                 });
                 const data = await resp.json();
-
                 if (data.success) {
                     document.getElementById('step1').style.display = 'none';
                     document.getElementById('result').classList.remove('hidden');
@@ -404,7 +342,6 @@ app.get('/', (req, res) => {
             } catch (err) {
                 alert('❌ Failed to connect: ' + err.message);
             }
-
             btn.disabled = false;
             loader.style.display = 'none';
         }
@@ -432,8 +369,7 @@ app.get('/', (req, res) => {
         }
     </script>
 </body>
-</html>
-    `);
+</html>`);
 });
 
 // ─── PAIR API ───
