@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>R4VEY-MD Pair Portal</title>
+    <link rel="stylesheet" href="css/glass.css">
+</head>
+<body>
+
+    <div class="glass-card">
+        <!-- Top Navigation Buttons -->
+        <div class="header-actions">
+            <button id="themeToggle" class="btn-icon">🌓 Theme</button>
+            <button id="adminBtn" class="btn-icon">📊 Admin</button>
+        </div>
+
+        <h1>R4VEY-MD</h1>
+        <p class="subtitle">Enter WhatsApp number with country code</p>
+
+        <!-- Form Input -->
+        <div class="input-group">
+            <input type="tel" id="phone" placeholder="e.g. 2349012345678" autocomplete="off">
+        </div>
+
+        <button id="submitBtn" onclick="requestPairCode()" class="btn-submit">Get Pairing Code</button>
+
+        <!-- Code Display Box -->
+        <div id="codeBox" class="code-box" onclick="copyCode()">--- ---</div>
+
+        <!-- Ambient Music Panel -->
+        <div class="music-panel">
+            <p class="music-title">🎵 AMBIENT MUSIC PLAYER</p>
+            <div class="track-btns">
+                <button class="btn-track" onclick="selectTrack(0, this)">Dandelions</button>
+                <button class="btn-track" onclick="selectTrack(1, this)">Blue</button>
+                <button class="btn-track" onclick="selectTrack(2, this)">White Keys</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Modal Overlay -->
+    <div id="modalOverlay" class="modal-overlay" onclick="closeAdmin()"></div>
+    <div id="adminModal" class="glass-card modal">
+        <h3>⚡ Admin System Stats</h3>
+        <br>
+        <p><strong>Uptime:</strong> <span id="sysUptime">...</span></p>
+        <p><strong>RAM Usage:</strong> <span id="sysRam">...</span></p>
+        <p><strong>Active Sessions:</strong> <span id="sysSessions">...</span></p>
+        <p><strong>Environment:</strong> <span id="sysPlatform">...</span></p>
+        <br>
+        <button onclick="closeAdmin()" class="btn-submit">Close</button>
+    </div>
+
+    <audio id="audioPlayer" loop></audio>
+
+    <script src="js/app.js"></script>
+    <script src="js/music.js"></script>
+</body>
+</html>
