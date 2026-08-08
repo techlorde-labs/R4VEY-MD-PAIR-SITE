@@ -1,60 +1,60 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>R4VEY-MD Pair Portal</title>
-    <link rel="stylesheet" href="css/glass.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>R4VEY-MD PAIR</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
+<div class="aurora"></div>
+<canvas id="particles"></canvas>
+<div class="noise"></div>
 
-    <div class="glass-card">
-        <!-- Top Navigation Buttons -->
-        <div class="header-actions">
-            <button id="themeToggle" class="btn-icon">🌓 Theme</button>
-            <button id="adminBtn" class="btn-icon">📊 Admin</button>
-        </div>
+<div class="container">
+  <div class="hero">
+    <h1>R4VEY-MD</h1>
+    <p>PREMIUM WHATSAPP PAIRING PORTAL</p>
+    <span>👋 Welcome to R4VEY-MD<br>Your premium gateway to seamless WhatsApp Multi-Device pairing.<br>Built with ❤️ by Ravey.</span>
+  </div>
 
-        <h1>R4VEY-MD</h1>
-        <p class="subtitle">Enter WhatsApp number with country code</p>
+  <div class="glass-card">
+    <label>📱 WhatsApp Number</label>
+    <input id="number" placeholder="+2567XXXXXXXX">
+    <button id="genBtn">Generate Pair Code</button>
+  </div>
 
-        <!-- Form Input -->
-        <div class="input-group">
-            <input type="tel" id="phone" placeholder="e.g. 2349012345678" autocomplete="off">
-        </div>
-
-        <button id="submitBtn" onclick="requestPairCode()" class="btn-submit">Get Pairing Code</button>
-
-        <!-- Code Display Box -->
-        <div id="codeBox" class="code-box" onclick="copyCode()">--- ---</div>
-
-        <!-- Ambient Music Panel -->
-        <div class="music-panel">
-            <p class="music-title">🎵 AMBIENT MUSIC PLAYER</p>
-            <div class="track-btns">
-                <button class="btn-track" onclick="selectTrack(0, this)">Dandelions</button>
-                <button class="btn-track" onclick="selectTrack(1, this)">Blue</button>
-                <button class="btn-track" onclick="selectTrack(2, this)">White Keys</button>
-            </div>
-        </div>
+  <div class="glass-card pairing-card hidden" id="pairCard">
+    <div class="card-header">SECURE PAIRING <span class="dot"></span> READY</div>
+    <label>🔑 Pair Code</label>
+    <div class="code" id="code">---- ----</div>
+    <div class="btns">
+      <button onclick="copyCode()">📋 Copy</button>
+      <button onclick="refreshCode()">🔄 Refresh</button>
     </div>
+    <div class="timer">⏳ Expires in <span id="timer">58</span>s</div>
+  </div>
 
-    <!-- Admin Modal Overlay -->
-    <div id="modalOverlay" class="modal-overlay" onclick="closeAdmin()"></div>
-    <div id="adminModal" class="glass-card modal">
-        <h3>⚡ Admin System Stats</h3>
-        <br>
-        <p><strong>Uptime:</strong> <span id="sysUptime">...</span></p>
-        <p><strong>RAM Usage:</strong> <span id="sysRam">...</span></p>
-        <p><strong>Active Sessions:</strong> <span id="sysSessions">...</span></p>
-        <p><strong>Environment:</strong> <span id="sysPlatform">...</span></p>
-        <br>
-        <button onclick="closeAdmin()" class="btn-submit">Close</button>
+  <div class="grid-2">
+    <div class="glass-card dashboard">
+      <h3>LIVE DASHBOARD</h3>
+      <div id="dash">Loading...</div>
     </div>
+    <div class="glass-card activity">
+      <h3>LIVE ACTIVITY</h3>
+      <div id="activityLog"></div>
+    </div>
+  </div>
 
-    <audio id="audioPlayer" loop></audio>
-
-    <script src="js/app.js"></script>
-    <script src="js/music.js"></script>
+  <div class="music-player">
+    <button onclick="toggleMusic()">⏮</button>
+    <button id="playBtn" onclick="toggleMusic()">⏸</button>
+    <button onclick="toggleMusic()">⏭</button>
+    <span id="songTitle">Dandelions — Ruth B.</span> 🔊
+    <audio id="bgm" src="https://cdn.pixabay.com/audio/1-1/dandelions-198838.mp3" loop></audio>
+  </div>
+</div>
+<div id="toast"></div>
+<script src="script.js"></script>
 </body>
 </html>
