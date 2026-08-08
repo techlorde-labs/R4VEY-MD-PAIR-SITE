@@ -28,6 +28,8 @@ router.get('/', async (req, res) => {
     const sessionFolder = `session_${Date.now()}_${Math.random().toString(36).substring(7)}`;
     const sessionDir = path.join(__dirname, `../sessions/${sessionFolder}`);
 
+    let codeSent = false;
+
     try {
         const { state, saveCreds } = await useMultiFileAuthState(sessionDir);
 
@@ -41,23 +43,30 @@ router.get('/', async (req, res) => {
             browser: Browsers.ubuntu("Chrome")
         });
 
-        // Request 8-digit pairing code
-        if (!socket.authState.creds.registered) {
-            await delay(1500);
-            const code = await socket.requestPairingCode(num);
-            
-            // Format code into 4-character chunks (e.g. ABCD-1234)
-            const formattedCode = code?.match(/.{1,4}/g)?.join('-') || code;
-
-            if (!res.headersSent) {
-                res.json({ code: formattedCode });
-            }
-        }
-
         socket.ev.on('creds.update', saveCreds);
 
         socket.ev.on('connection.update', async (update) => {
-            const { connection, lastDisconnect } = update;
+            const { connection, lastDisconnect, qr } = update;
+
+            // Trigger code generation ONLY when WebSocket is initialized & ready
+            if ((qr || connection === 'connecting') && !codeSent && !socket.authState.creds.registered) {
+                codeSent = true;
+
+                try {
+                    await delay(1500);
+                    const code = await socket.requestPairingCode(num);
+                    const formattedCode = code?.match(/.{1,4}/g)?.join('-') || code;
+
+                    if (!res.headersSent) {
+                        res.json({ code: formattedCode });
+                    }
+                } catch (codeErr) {
+                    console.error("[PAIRING CODE ERROR]", codeErr);
+                    if (!res.headersSent) {
+                        res.status(500).json({ error: "Failed to generate pairing code. Please try again." });
+                    }
+                }
+            }
 
             if (connection === 'open') {
                 await delay(3000);
@@ -82,7 +91,7 @@ router.get('/', async (req, res) => {
 
             } else if (connection === 'close') {
                 const statusCode = lastDisconnect?.error?.output?.statusCode;
-                if (statusCode === 401) {
+                if (statusCode === 401 || statusCode === 515) {
                     await fs.remove(sessionDir);
                 }
             }
@@ -92,7 +101,7 @@ router.get('/', async (req, res) => {
         console.error("Pairing Error:", err);
         await fs.remove(sessionDir);
         if (!res.headersSent) {
-            res.status(500).json({ error: "Failed to generate pairing code." });
+            res.status(500).json({ error: "Failed to initialize pairing process." });
         }
     }
 });
