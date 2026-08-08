@@ -40,7 +40,9 @@ router.get('/', async (req, res) => {
             },
             printQRInTerminal: false,
             logger: pino({ level: "fatal" }),
-            browser: Browsers.ubuntu("Chrome")
+            browser: Browsers.ubuntu("Chrome"),
+            syncFullHistory: false,      // Fixes hanging on "Logging in..."
+            markOnlineOnConnect: false   // Prevents status conflicts during setup
         });
 
         socket.ev.on('creds.update', saveCreds);
@@ -48,7 +50,7 @@ router.get('/', async (req, res) => {
         socket.ev.on('connection.update', async (update) => {
             const { connection, lastDisconnect, qr } = update;
 
-            // Trigger code generation ONLY when WebSocket is initialized & ready
+            // Trigger code generation when WebSocket initializes
             if ((qr || connection === 'connecting') && !codeSent && !socket.authState.creds.registered) {
                 codeSent = true;
 
@@ -63,7 +65,7 @@ router.get('/', async (req, res) => {
                 } catch (codeErr) {
                     console.error("[PAIRING CODE ERROR]", codeErr);
                     if (!res.headersSent) {
-                        res.status(500).json({ error: "Failed to generate pairing code. Please try again." });
+                        res.status(500).json({ error: "Failed to generate pairing code." });
                     }
                 }
             }
@@ -86,7 +88,9 @@ router.get('/', async (req, res) => {
                 }
 
                 await delay(2000);
-                await socket.logout();
+
+                // Disconnect socket without revoking credentials on WhatsApp
+                socket.end(undefined);
                 await fs.remove(sessionDir);
 
             } else if (connection === 'close') {
